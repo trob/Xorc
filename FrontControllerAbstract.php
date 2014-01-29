@@ -65,7 +65,10 @@ class FrontControllerAbstract {
 
 		return $this;
 	}
-
+	
+	/**
+	 * Добавляет маршруты. Может быть перегружен в фронт-контроллере
+	 */
 	protected function addRoutes(){
 
 	}

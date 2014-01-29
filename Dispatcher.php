@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc;
+
 /**
  * Диспетчер контроллеров
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
