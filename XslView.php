@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc;
+
 require_once 'XmlBuilder.php';
 
 /**
@@ -36,8 +38,8 @@ class XslView  extends XmlBuilder{
 	*/
 	public function __construct($xslFile = null){
 		parent::__construct();
-		$this->xsldoc = new DOMDocument();
-		$this->xslt = new XSLTProcessor();
+		$this->xsldoc = new \DOMDocument();
+		$this->xslt = new \XSLTProcessor();
 		$this->xslt->registerPHPFunctions();
 		$this->xslFile = $xslFile ? $xslFile : $this->setXslFile();
 	}

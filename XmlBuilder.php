@@ -25,7 +25,7 @@ class XmlBuilder {
 	 */
 	public function __construct(){
 		$this->registry =& Registry::getInstance();
-		$this->xml = new DOMDocument();
+		$this->xml = new \DOMDocument();
 		$this->xml->loadXML('<root/>');
 	}
 
@@ -35,7 +35,7 @@ class XmlBuilder {
 	 * @return void
 	 */
 	public function appendXMLfile($filepath){
-		$child = new DOMDocument();
+		$child = new \DOMDocument();
 		$child->load($filepath);
 		$child = $this->xml->importNode($child->documentElement, true);
 		$this->xml->appendChild($child);

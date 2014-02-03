@@ -43,7 +43,7 @@ class MySqli {
 
 		$this->registry =& Registry::getInstance();
 
-		$this->dbConnect = new mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
+		$this->dbConnect = new \mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
 		if ($this->dbConnect->connect_errno){
 			echo 'Ошибка '.$this->dbConnect->connect_errno;
 			exit;
