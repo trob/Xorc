@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc;
+
 /**
  * Фронт контроллер
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>

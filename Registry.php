@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc;
+
 /**
  * Реестр переменных
  * @package Xorc framework

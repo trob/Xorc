@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc;
+
 /**
  * Класс для построения xml дерева из различных данных
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
@@ -62,6 +64,7 @@ class XmlBuilder {
 	 * @return void
 	 */
 	public function appendMySQLresource($resourse, $fragmentName){
+		var_dump($resourse);
 		$fragment = $this->xml->createElement($fragmentName);
 		for ($i=0; $i<mysql_num_rows($resourse); $i++){
 			$line = $this->xml->createElement('line');
