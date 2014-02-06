@@ -2,6 +2,8 @@
 
 namespace Xorc;
 
+use \mysqli as mqsqli;
+
 /**
  * Класс для работы с базой данных MySQLi
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
@@ -43,7 +45,7 @@ class MySqli {
 
 		$this->registry =& Registry::getInstance();
 
-		$this->dbConnect = new \mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
+		$this->dbConnect = new mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
 		if ($this->dbConnect->connect_errno){
 			echo 'Ошибка '.$this->dbConnect->connect_errno;
 			exit;

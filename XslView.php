@@ -2,6 +2,9 @@
 
 namespace Xorc;
 
+use \DOMDocument	as DOMDocument,
+	\XSLTProcessor	as XSLTProcessor;
+
 require_once 'XmlBuilder.php';
 
 /**
@@ -13,13 +16,13 @@ class XslView  extends XmlBuilder{
 
 	/**
 	* Объект DOMDocument для xsl файла
-	* @var <i>DOMDocument</i>
+	* @var DOMDocument
 	*/
 	private $xsldoc;
 
 	/**
 	 * Объект XSLTProcessor
-	 * @var <i>XSLTProcessor</i>
+	 * @var XSLTProcessor
 	 */
 	private $xslt;
 
@@ -27,7 +30,7 @@ class XslView  extends XmlBuilder{
 
 	/**
 	 * HTML-строка на выходе
-	 * @var <i>string</i>
+	 * @var string
 	 */
 	private $html;
 
@@ -38,8 +41,8 @@ class XslView  extends XmlBuilder{
 	*/
 	public function __construct($xslFile = null){
 		parent::__construct();
-		$this->xsldoc = new \DOMDocument();
-		$this->xslt = new \XSLTProcessor();
+		$this->xsldoc = new DOMDocument();
+		$this->xslt = new XSLTProcessor();
 		$this->xslt->registerPHPFunctions();
 		$this->xslFile = $xslFile ? $xslFile : $this->setXslFile();
 	}

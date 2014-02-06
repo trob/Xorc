@@ -2,6 +2,8 @@
 
 namespace Xorc;
 
+use \DOMDocument	as DOMDocument;
+
 /**
  * Класс для построения xml дерева из различных данных
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
@@ -25,7 +27,7 @@ class XmlBuilder {
 	 */
 	public function __construct(){
 		$this->registry =& Registry::getInstance();
-		$this->xml = new \DOMDocument();
+		$this->xml = new DOMDocument();
 		$this->xml->loadXML('<root/>');
 	}
 
@@ -35,7 +37,7 @@ class XmlBuilder {
 	 * @return void
 	 */
 	public function appendXMLfile($filepath){
-		$child = new \DOMDocument();
+		$child = new DOMDocument();
 		$child->load($filepath);
 		$child = $this->xml->importNode($child->documentElement, true);
 		$this->xml->appendChild($child);
@@ -64,7 +66,7 @@ class XmlBuilder {
 	 * @return void
 	 */
 	public function appendMySQLresource($resourse, $fragmentName){
-		var_dump($resourse);
+		print_r($resourse);
 		$fragment = $this->xml->createElement($fragmentName);
 		for ($i=0; $i<mysql_num_rows($resourse); $i++){
 			$line = $this->xml->createElement('line');
