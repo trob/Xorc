@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc\Model;
+
 require_once 'MySql.php';
 
  abstract class UserAbstract extends MySql {

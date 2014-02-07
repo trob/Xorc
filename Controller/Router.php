@@ -1,6 +1,6 @@
 <?php
 
-namespace Xorc;
+namespace Xorc\Controller;
 
 /**
 * Маршрутизатор

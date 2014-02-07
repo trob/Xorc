@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc\Model\DataBase;
+
 /**
  * Класс для работы с базой данных MySQL
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>

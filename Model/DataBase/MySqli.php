@@ -1,8 +1,6 @@
 <?php
 
-namespace Xorc;
-
-use \mysqli as mqsqli;
+namespace Xorc\Model\DataBase;
 
 /**
  * Класс для работы с базой данных MySQLi
@@ -13,26 +11,26 @@ class MySqli {
 
 	/**
 	 * Реестр
-	 * @var <i>array</i>
+	 * @var array
 	 */
 	public $registry;
 
 	/**
 	 * Иденитфикатор соединения
-	 * @var <i>mysqli</i>
+	 * @var \mysqli
 	 */
 	protected $dbConnect;
 
 	/**
 	 * Результат запроса к БД
-	 * @var <i>mysqli_result</i>
+	 * @var \mysqli_result
 	 */
 	protected $result;
 
 	/**
 	 * Cвойство-объект, в который метод getObject
 	 * сохраняет свойства (поля) полученного из БД объекта
-	 * @var <i>object</i>
+	 * @var object
 	 */
 	protected $object;
 
@@ -44,8 +42,7 @@ class MySqli {
 	public function __construct(){
 
 		$this->registry =& Registry::getInstance();
-
-		$this->dbConnect = new mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
+		$this->dbConnect = new \mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
 		if ($this->dbConnect->connect_errno){
 			echo 'Ошибка '.$this->dbConnect->connect_errno;
 			exit;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Xorc;
+namespace Xorc\View;
 
 use \DOMDocument	as DOMDocument,
 	\XSLTProcessor	as XSLTProcessor;

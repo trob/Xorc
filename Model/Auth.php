@@ -1,11 +1,15 @@
 <?php
 
+namespace Xorc\Model;
+
+require_once 'MySql.php';
+
 /**
- * Класс аутентификации c использованием XML
+ * Класс аутентификации
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
- * @version 2.0 beta
+ * @version 1.0 beta
  */
-class AuthXML {
+class Auth extends MySql {
 
 	private $cookieID;
 
@@ -54,37 +58,46 @@ class AuthXML {
 	}
 
 	function login(){
+
 		//Если не введено именя пользователя - показываем лог-форму
 		if (!isset($_POST['login'])) return false;
 
 		// Имя пользователя введено - ищем его в базе
-		$users = simplexml_load_file($this->userXMLpath);
-		$user = $users->xpath('/users/user[name="' . $_POST['login'] . '"]');
+		$user = $this->getObjectByParam('cm_user_login', 'login', $_POST['login']);
+
 		//Нет пользователя с таким именем
 		if (!$user){
-			unset($_POST['login'], $_POST['password'], $users, $user);
+			unset($_POST['login'], $_POST['password'], $user);
 			return false;
-		}else{
-			// Проверяем пароль
-			$pwd = md5($_POST['password']);
-			//Пароль не верный
-			if ($pwd != $user['0']->password){
-				unset($_POST['login'], $_POST['password'], $users, $user, $pwd);
-				return false;
-			// Авторизация успешна
-			}else{
-				$userid = $user['0']['id'];
-				settype($userid, "integer");
-				$hash = md5($this->generateCode(10));
-				$users->user[$userid]->hash = $hash;
-				$users->user[$userid]->ip = $_SERVER['REMOTE_ADDR'];
-				$users->asXML($this->userXMLpath);
-				setcookie($this->cookieID, $userid, time()+60*60*6);
-				setcookie($this->cookieHASH, $hash, time()+60*60*6);
-				unset($users, $user, $pwd, $userid, $hash, $_POST['login'], $_POST['password']);
-				return true;
-			}
 		}
+
+		// Проверяем пароль
+		$pwd = md5($_POST['password']);
+
+		//Пароль не верный
+		if ($pwd != $user->pw_hash){
+			unset($_POST['login'], $_POST['password'], $user, $pwd);
+			return false;
+
+		}
+
+		// Авторизация успешна
+		$userid = $user->id;
+		settype($userid, "integer");
+		$solt = md5($this->generateCode(10));
+		$ip = md5($_SERVER['REMOTE_ADDR']);
+		$browserData = md5($str);
+		session_start();
+		$_SESSION['id'] = $userid;
+
+		$users->user[$userid]->hash = $hash;
+		$users->user[$userid]->ip = $_SERVER['REMOTE_ADDR'];
+		$users->asXML($this->userXMLpath);
+		setcookie($this->cookieID, $userid, time()+60*60*6);
+		setcookie($this->cookieHASH, $hash, time()+60*60*6);
+		unset($users, $user, $pwd, $userid, $hash, $_POST['login'], $_POST['password']);
+		return true;
+
 	}
 
 	function logout(){

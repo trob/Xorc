@@ -1,5 +1,7 @@
 <?php
 
+namespace Xorc\Controller;
+
 /**
  * Класс для подсчета времени генерации страницы.
  * @author Roman Kazakov (a.k.a. RC21) <rc21@mail.ru>
