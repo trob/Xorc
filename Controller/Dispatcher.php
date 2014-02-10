@@ -1,6 +1,7 @@
 <?php
 
 namespace Xorc\Controller;
+use \Exception as Exception;
 
 /**
  * Диспетчер контроллеров
@@ -81,16 +82,17 @@ class Dispatcher{
 	 * Вызывает контроллер
 	 * @throws <i>Exception</i> Неудалось запустить контроллер: не найден файл, нет класса, нет метода
 	 */
-	public function dispatch() {
+	public function dispatch($appNameSpace) {
 		try {
-
 			$file = $this->controllersPath.$this->moduleName.$this->controllerName.'.php';
-
+			
 			if (!file_exists($file)) throw new Exception();
 			require_once $file;
-
-			if (!class_exists($this->controllerName)) throw new Exception();
-			$controller = new $this->controllerName;
+			
+			$fullClassName = $appNameSpace.'\\'.$this->controllerName;
+			
+			if (!class_exists($fullClassName)) throw new Exception();
+			$controller = new $fullClassName;
 
 			if (!method_exists($controller, $this->actionName)) throw new Exception();
 			$action = $this->actionName;

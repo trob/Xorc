@@ -3,16 +3,15 @@
 namespace Xorc\View;
 
 use \DOMDocument	as DOMDocument,
-	\XSLTProcessor	as XSLTProcessor;
-
-require_once 'XmlBuilder.php';
+	\XSLTProcessor	as XSLTProcessor,
+	Xorc\XmlBuilder	as XmlBuilder;
 
 /**
  * View использующий xsl в качестве шаблонов
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
  * @version 3.0
  */
-class XslView  extends XmlBuilder{
+class XslView  extends XmlBuilder {
 
 	/**
 	* Объект DOMDocument для xsl файла

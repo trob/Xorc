@@ -2,9 +2,9 @@
 
 namespace Xorc\Model;
 
-require_once 'MySql.php';
+use Xorc\Model\DataBase\MySqli as MySqli;
 
- abstract class UserAbstract extends MySql {
+ abstract class UserAbstract extends MySqli {
 
 	protected $userDBtable;
 

@@ -2,7 +2,8 @@
 
 namespace Xorc;
 
-use \DOMDocument	as DOMDocument;
+use \DOMDocument				as DOMDocument,
+	Xorc\Controller\Registry	as Registry;
 
 /**
  * Класс для построения xml дерева из различных данных

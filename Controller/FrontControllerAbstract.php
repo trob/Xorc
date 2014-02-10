@@ -21,13 +21,15 @@ class FrontControllerAbstract {
 	 */
 	protected $router;
 
+	protected $appNameSpace;
+	
 	/**
 	 * Конструктор класса
 	 */
 	public function __construct() {
-
+		
 	}
-
+	
 	/**
 	 * Метод для загрузки настроек из файла конфигурации
 	 */
@@ -37,10 +39,21 @@ class FrontControllerAbstract {
 	}
 
 	/**
+	 * Загрузчик классов
+	 */
+	protected  function autoloader() {
+		spl_autoload_register(array($this, 'libAutoloader'));
+		return  $this;
+	}
+	
+	protected function libAutoloader($class) {
+		if (strpos($class, 'Xorc') === 0) require_once $this->config[path][lib] . $class . '.php';
+	}
+	
+	/**
 	 * Инициализирует реестр и загружает в него настройки
 	 */
 	protected function registry() {
-		require_once $this->config[path][lib].'Registry.php';
 
 		foreach ($this->config as $key => $value) {
 			Registry::set($key, $value);
@@ -58,7 +71,6 @@ class FrontControllerAbstract {
 	 */
 	protected function router() {
 
-		require_once $this->config[path][lib].'Router.php';
 		$this->router = new Router();
 
 		$this->addRoutes();
@@ -79,9 +91,8 @@ class FrontControllerAbstract {
 	 * Вызывает диспетчер контроллеров
 	 */
 	protected function dispatcher() {
-		require_once $this->config[path][lib].'Dispatcher.php';
 		$dispatcher = new Dispatcher();
-		$dispatcher->dispatch();
+		$dispatcher->dispatch($this->appNameSpace);
 		return $this;
 	}
 
@@ -98,6 +109,7 @@ class FrontControllerAbstract {
 	public function run() {
 
 		$this	->loadConfig()
+				->autoloader()
 				->registry()
 				->router()
 				->dispatcher()

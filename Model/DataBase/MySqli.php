@@ -2,6 +2,8 @@
 
 namespace Xorc\Model\DataBase;
 
+use Xorc\Controller\Registry as Registry;
+
 /**
  * Класс для работы с базой данных MySQLi
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
