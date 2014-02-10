@@ -61,13 +61,13 @@ class XmlBuilder {
 	}
 
 	/**
+	 * @deprecated
 	 * Добавляет к обекту DOMDocument данные из SQL запроса
 	 * @param resource $resourse Результат SQL запроса
 	 * @param string $fragmentName Имя создаваемого xml элемента
 	 * @return void
 	 */
 	public function appendMySQLresource($resourse, $fragmentName){
-		print_r($resourse);
 		$fragment = $this->xml->createElement($fragmentName);
 		for ($i=0; $i<mysql_num_rows($resourse); $i++){
 			$line = $this->xml->createElement('line');
@@ -101,6 +101,7 @@ class XmlBuilder {
 	 * @param string $keyName Имя элементов, соответсвующих элементам массива
 	 */
 	public function appendArray($array, $fragmentName, $keyName = null) {
+		var_dump($array);
 		$fragment = $this->xml->createElement($fragmentName);
 		foreach ($array as $key => $value) {
 			$nodeName = ($keyName) ? $keyName : $key;
@@ -122,7 +123,7 @@ class XmlBuilder {
 	}
 
 	/**
-	 * Добавляет к объекту любой допустимый тип данных
+	 * Добавляет к объекту DOMDocument любой допустимый тип данных
 	 * @param Array|resource|string $data
 	 * @param string $secondData
 	 * @param string $keyName

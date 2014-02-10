@@ -65,6 +65,29 @@ class MySqli {
 		else return false;
 	}
 
+	public function procedure ($procedureName, $procedureParams) {
+		$query = 'call '.$procedureName;
+		if($procedureParams){
+			$query .= '(';
+			for($i = 0; $i < count($procedureParams); $i++){
+				$query .= '"'.$procedureParams[$i].'"';
+				if($i < count($procedureParams) - 1) $query .= ', ';
+			}
+			$query .= ')';
+		}
+		return $query;
+	}
+	
+	/**
+	 * Выполняет запрос с вызовом хранимой процедуры
+	 * @param <i>string</i> <b>$procedureName</b> Имя вызываемой хранимой процедуры.
+	 * @param <i>array</i> <b>$procedureParams</b> Массив параметров хранимой процедуры.
+	 * @return Ambigous <<i>resource</i>, <i>boolean</i>> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
+	 */
+	public function callProcedure($procedureName, $procedureParams){
+		return $this->query($this->procedure($procedureName, $procedureParams));
+	}
+	
 	/**
 	 * Выполняет несколько запросов к БД.
 	 * @param <i>array</i> <b>$queries</b> Массив строк с SQL запросами.
@@ -87,7 +110,7 @@ class MySqli {
 	 */
 	public function getObject($query, $type = 'object'){
 		$this->query($query);
-		if(is_resource($this->result) && $this->result->num_rows){
+		if($this->result->num_rows){
 			switch ($type) {
 				case 'object':
 					$this->object = $this->result->fetch_object();
@@ -229,25 +252,6 @@ class MySqli {
 		}
 
 		return $variable;
-	}
-
-	/**
-	 * Выполняет запрос с вызовом хранимой процедуры
-	 * @param <i>string</i> <b>$procedureName</b> Имя вызываемой хранимой процедуры.
-	 * @param <i>array</i> <b>$procedureParams</b> Массив параметров хранимой процедуры.
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
-	 */
-	public function callProcedure($procedureName, $procedureParams){
-		$query = 'call '.$procedureName;
-		if($procedureParams){
-			$query .= '(';
-			for($i = 0; $i < count($procedureParams); $i++){
-				$query .= '"'.$procedureParams[$i].'"';
-				if($i < count($procedureParams) - 1) $query .= ', ';
-			}
-			$query .= ')';
-		}
-		return $this->query($query);
 	}
 
 	/**
