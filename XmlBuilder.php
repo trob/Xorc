@@ -101,10 +101,13 @@ class XmlBuilder {
 	 * @param string $keyName Имя элементов, соответсвующих элементам массива
 	 */
 	public function appendArray($array, $fragmentName, $keyName = null) {
-		var_dump($array);
 		$fragment = $this->xml->createElement($fragmentName);
 		foreach ($array as $key => $value) {
 			$nodeName = ($keyName) ? $keyName : $key;
+			if (is_array($value)) {
+				
+				continue;
+			}
 			$node = $this->xml->createElement($nodeName, $value);
 			$fragment->appendChild($node);
 		}

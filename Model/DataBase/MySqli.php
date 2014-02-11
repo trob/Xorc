@@ -21,7 +21,7 @@ class MySqli {
 	 * Иденитфикатор соединения
 	 * @var \mysqli
 	 */
-	protected $dbConnect;
+	protected $db;
 
 	/**
 	 * Результат запроса к БД
@@ -34,8 +34,15 @@ class MySqli {
 	 * сохраняет свойства (поля) полученного из БД объекта
 	 * @var object
 	 */
-	protected $object;
+	protected $properties;
 
+	/**
+	 * Массив объектов (в действительности асоциативных массивов),
+	 * каждый из которых представляет ряд из результата запроса.
+	 * @var array
+	 */
+	protected $members;
+	
 	/**
 	 * Конструктор класса
 	 * выполняет подключение к серверу
@@ -44,9 +51,9 @@ class MySqli {
 	public function __construct(){
 
 		$this->registry =& Registry::getInstance();
-		$this->dbConnect = new \mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
-		if ($this->dbConnect->connect_errno){
-			echo 'Ошибка '.$this->dbConnect->connect_errno;
+		$this->db = new \mysqli($this->registry['db']['server'], $this->registry['db']['user'], $this->registry['db']['password'], $this->registry['db']['db']);
+		if ($this->db->connect_errno){
+			echo 'Ошибка '.$this->db->connect_errno;
 			exit;
 		}
 	}
@@ -56,15 +63,21 @@ class MySqli {
 	 * (при этом из памяти удаляются результаты предыдущего запроса);
 	 * результат запроса сохраняется в свойсвтве объекта $result.
 	 * @param <i>string</i> <b>$query</b> Cтрока с SQL запросом.
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
+	 * @return multitype: <i>resource</i> | <i>boolean</i> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
 	 */
 	public function &query($query){
 		if(is_resource($this->result)) $this->result->free();
-		$this->result = $this->dbConnect->query($query);
+		$this->result = $this->db->query($query);
 		if ($this->result) return $this->result;
 		else return false;
 	}
 
+	/**
+	 * Формирует строку запроса для вызова хранимой процедуры.
+	 * @param <i>string</i> <b>$procedureName</b> Имя вызываемой хранимой процедуры.
+	 * @param <i>array</i> <b>$procedureParams</b> Массив параметров хранимой процедуры.
+	 * @return <i>string</i> Строка запроса с вызовом хранимой процедуры.
+	 */
 	public function procedure ($procedureName, $procedureParams) {
 		$query = 'call '.$procedureName;
 		if($procedureParams){
@@ -79,10 +92,10 @@ class MySqli {
 	}
 	
 	/**
-	 * Выполняет запрос с вызовом хранимой процедуры
+	 * Выполняет запрос с вызовом хранимой процедуры.
 	 * @param <i>string</i> <b>$procedureName</b> Имя вызываемой хранимой процедуры.
 	 * @param <i>array</i> <b>$procedureParams</b> Массив параметров хранимой процедуры.
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
+	 * @return multitype: <i>resource</i> | <i>boolean</i> Если запрос выполнен возвращается результат запроса, если не выполнен - false.
 	 */
 	public function callProcedure($procedureName, $procedureParams){
 		return $this->query($this->procedure($procedureName, $procedureParams));
@@ -105,7 +118,7 @@ class MySqli {
 	 * метод записывает значения этой строки в объект - $properties.
 	 * @param <i>string</i> <b>$query</b> Cтрока с SQL запросом.
 	 * @param <i>string</i> <b>$type</b> Возвращаемый тип: <code>object (<i>default</i>) | assoc | num</code>
-	 * @return Ambigous <<i>object</i>, <i>boolean</i>> Если запрос выполнен и результат содержит хотя бы одну строку
+	 * @return multitype: <i>object</i> | <i>boolean</i> Если запрос выполнен и результат содержит хотя бы одну строку
 	 * метод возвращает объект, в противном случае возвращается false.
 	 */
 	public function getObject($query, $type = 'object'){
@@ -113,29 +126,29 @@ class MySqli {
 		if($this->result->num_rows){
 			switch ($type) {
 				case 'object':
-					$this->object = $this->result->fetch_object();
+					$this->properties = $this->result->fetch_object();
 				break;
 				case 'assoc':
-					$this->object = $this->result->fetch_assoc();
+					$this->properties = $this->result->fetch_assoc();
 				break;
 				case 'num':
-					$this->object = $this->result->fetch_array();
+					$this->properties = $this->result->fetch_array();
 				break;
 			}
 			$this->result->free();
-			return $this->object;
-		}else{
-			return false;
+			return $this->properties;
 		}
+		return false;
+		
 	}
 
 	/**
 	 * Выбирает из таблицы $table первую строку, в которой поле $field равно $value, и возвращает эту строку в виде объекта.
 	 * @param <i>string</i> <b>$table</b> Имя таблицы
 	 * @param <i>string</i> <b>$field</b> Имя поля
-	 * @param <i>string</i> <b>$value</b> Значение поля'
+	 * @param <i>string</i> <b>$value</b> Значение поля
 	 * @param <i>string</i> <b>$type</b> Возвращаемый тип: <code>object (<i>default</i>) | assoc | num</code>
-	 * @return Ambigous <<i>object</i>, <i>boolean</i>> Если запрос выполнен и результат содержит хотя бы одну строку
+	 * @return multitype: <i>object</i> | <i>boolean</i> Если запрос выполнен и результат содержит хотя бы одну строку
 	 * метод возвращает объект, в противном случае возвращается false.
 	 */
 	public function getObjectByParam($table, $field, $value, $type = 'object') {
@@ -144,11 +157,30 @@ class MySqli {
 	}
 
 	/**
+	 * Выполняет запрос к базе данных (с помощью метода query())
+	 * и если результат запроса содержит хотя бы одну строку
+	 * метод записывает каждую строку в виде массива (ассоциативного или простого) в массив $members.
+	 * @param <i>string</i> <b>$query</b> Cтрока с SQL запросом.
+	 * @param <i>string</i> <b>$type</b> Возвращаемый тип: <code>assoc (<i>default</i>) | num</code>.
+	 * @return multitype: <i>array</i> | <i>boolean</i> Если запрос выполнен и результат содержит хотя бы одну строку
+	 * метод возвращает массив, в противном случае возвращается false.
+	 */
+	public function getAll ($query, $type = 'assoc') {
+		$this->query($query);
+		if ($this->result->num_rows) {
+			$resulttype = $type == 'num' ? MYSQLI_NUM : MYSQLI_ASSOC;
+			$this->members = $this->result->fetch_all($resulttype);
+			return $this->members;
+		}
+		return false;
+	}
+	
+	/**
 	 * Добавляет в таблицу $table значения из массива $values.
 	 * Порядок значений в массиве $values должен соответсвовать порядку столбцов в таблице $table.
 	 * @param <i>string</i> <b>$table</b> Имя таблицы
 	 * @param <i>array</i> <b>$values</b> Массив вставляемых значений
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>>
+	 * @return multitype: <i>resource</i> | <i>boolean</i>
 	 */
 	public function insertByPos($table, $values) {
 		$length = count($values);
@@ -169,7 +201,7 @@ class MySqli {
 	 * Названия ключей массива $values должны соответствовать названиям столбцов в таблице $table.
 	 * @param <i>string</i> <b>$table</b> Имя таблицы
 	 * @param <i>array</i> <b>$values</b> Массив вставляемых значений
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>>
+	 * @return multitype: <i>resource</i> | <i>boolean</i>
 	 */
 	public function insertByName($table, $values) {
 		$length = count($values);
@@ -199,7 +231,7 @@ class MySqli {
 	 * @param <i>array</i> <b>$fields</b> Массив вставляемых значений
 	 * @param <i>string</i> <b>$param</b> Имя поля
 	 * @param <i>string</i> <b>$value</b> Значение поля
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>>
+	 * @return multitype: <i>resource</i> | <i>boolean</i>
 	 */
 	public function update($table, $fields, $param, $value) {
 		$query = "UPDATE " . $table . " SET ";
@@ -227,7 +259,7 @@ class MySqli {
 	 * @param <i>string</i> <b>$table</b> Имя таблицы
 	 * @param <i>string</i> <b>$field</b> Имя поля
 	 * @param <i>string</i> <b>$value</b> Значение поля
-	 * @return Ambigous <<i>resource</i>, <i>boolean</i>>
+	 * @return multitype: <i>resource</i> | <i>boolean</i>
 	 */
 	public function delete($table, $field, $value) {
 		$query = "DELETE FROM " . $table . " WHERE " . $field . "='" .$value ."'";
@@ -238,12 +270,12 @@ class MySqli {
 	 * Защищает Post и Get переменные от SQL инъекций
 	 * @param <i>string</i> <b>$variable</b> Post или Get переменная
 	 * @param <i>string</i> <b>$type</b> Тип переменной
-	 * @return Ambigous <<i>string</i>, <i>integer</i>>
+	 * @return multitype: <i>string</i> | <i>integer</i>
 	 */
 	public function escape($variable, $type) {
 		switch ($type) {
 			case 'str':
-				$variable = $this->dbConnect->real_escape_string($variable);
+				$variable = $this->db->real_escape_string($variable);
 			break;
 
 			case 'int':
@@ -261,6 +293,6 @@ class MySqli {
 	public function __destruct(){
 		if(is_resource($this->result)) $this->result->free();
 		// FIXME Закрытие соединения может вызвать ошибку, если другие объекты попытаются использовать это соединение
-		//mysql_close($this->dbConnect);
+		//mysql_close($this->db);
 	}
 }
