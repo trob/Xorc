@@ -95,19 +95,15 @@ class XmlBuilder {
 	}
 
 	/**
-	 * Добавляет к объекту DOMDocument массив
-	 * @param Array $array Добавляемый массив
+	 * Добавляет к объекту DOMDocument php-объект или массив
+	 * @param multitype: object | array $array Добавляемый объект или массив
 	 * @param string $fragmentName Имя создаваемого xml элемента
 	 * @param string $keyName Имя элементов, соответсвующих элементам массива
 	 */
-	public function appendArray($array, $fragmentName, $keyName = null) {
+	public function appendObject($object, $fragmentName, $keyName = null) {
 		$fragment = $this->xml->createElement($fragmentName);
-		foreach ($array as $key => $value) {
+		foreach ($object as $key => $value) {
 			$nodeName = ($keyName) ? $keyName : $key;
-			if (is_array($value)) {
-				
-				continue;
-			}
 			$node = $this->xml->createElement($nodeName, $value);
 			$fragment->appendChild($node);
 		}
@@ -116,13 +112,23 @@ class XmlBuilder {
 	}
 
 	/**
-	 * Добавляет к объекту DOMDocument php-объект
-	 * @param object $object Добавляемый объект
+	 * Добавляет к объекту DOMDocument многомерный массив
+	 * @param array $array Добавляемый многомерный массив
 	 * @param string $fragmentName Имя создаваемого xml элемента
-	 * @param string $keyName Имя элементов, соответсвующих элементам массива
 	 */
-	public function appendObject($object, $fragmentName, $keyName = null) {
-		return $this->appendArray($object, $fragmentName, $keyName);
+	public function appendArray($array, $fragmentName) {
+		$fragment = $this->xml->createElement($fragmentName);
+		foreach ($array as $key => $value) {
+			$node = $this->xml->createElement('node');
+			$f=mysql_fetch_array($resourse, MYSQL_ASSOC);
+			foreach ($f as $key=>$value){
+				$field = $this->xml->createElement($key, $value);
+				$line->appendChild($field);
+			}
+			$fragment->appendChild($line);
+		}
+		$this->xml->appendChild($fragment);
+		return $this;
 	}
 
 	/**
@@ -132,7 +138,7 @@ class XmlBuilder {
 	 * @param string $keyName
 	 */
 	public function append($data, $fragmentName = null, $keyName) {
-		if (is_array($data)) $this->appendArray($data, $fragmentName, $keyName);
+		if (is_array($data) || is_object($data)) $this->appendObject($data, $fragmentName, $keyName);
 		else if (is_resource($data)) $this->appendMySQLresource($data, $fragmentName);
 		else if ($fragmentName && is_string($data)) $this->appendNode($fragmentName, $data);
 		else if (is_string($data) && file_exists($data)) $this->appendXMLfile($data);
