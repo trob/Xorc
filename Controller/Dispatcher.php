@@ -80,6 +80,7 @@ class Dispatcher{
 
 	/**
 	 * Вызывает контроллер
+	 * @param string $appNameSpace - Namespace приложения
 	 * @throws <i>Exception</i> Неудалось запустить контроллер: не найден файл, нет класса, нет метода
 	 */
 	public function dispatch($appNameSpace) {

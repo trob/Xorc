@@ -23,19 +23,18 @@ class XmlBuilder {
 	/**
 	 * Конструктор класса:
 	 * cоздает оъбект DOMDocument и
-	 * загружает в него корневой элемент <root/>
-	 * @return object Обект класса
+	 * загружает в него корневой элемент
+	 * @param string $rootName - имя корневого элемента
 	 */
-	public function __construct(){
+	public function __construct($rootName = 'root'){
 		$this->registry =& Registry::getInstance();
 		$this->xml = new DOMDocument();
-		$this->xml->loadXML('<root/>');
+		$this->xml->loadXML('<'.$rootName.'/>');
 	}
 
 	/**
 	 * Добавляет к объекту DOMDocument xml файл
 	 * @param string $filepath Путь к xml файлу
-	 * @return void
 	 */
 	public function appendXMLfile($filepath){
 		$child = new DOMDocument();
@@ -49,7 +48,6 @@ class XmlBuilder {
 	/**
 	 * Добавляет к объекту DOMDocument xml строку
 	 * @param string $xmlString XML строка
-	 * @return void
 	 */
 	public function appendXMLstring($xmlString){
 		$child = new DOMDocument();
@@ -65,7 +63,6 @@ class XmlBuilder {
 	 * Добавляет к обекту DOMDocument данные из SQL запроса
 	 * @param resource $resourse Результат SQL запроса
 	 * @param string $fragmentName Имя создаваемого xml элемента
-	 * @return void
 	 */
 	public function appendMySQLresource($resourse, $fragmentName){
 		$fragment = $this->xml->createElement($fragmentName);
@@ -86,7 +83,6 @@ class XmlBuilder {
 	 * Добавляет к объекту DOMDocument новый узел (node)
 	 * @param string $nodeName Имя элемента
 	 * @param string $nodeValue Значение элемента
-	 * @return void
 	 */
 	public function appendNode($nodeName, $nodeValue){
 		$newNode = $this->xml->createElement($nodeName, $nodeValue);
@@ -95,38 +91,33 @@ class XmlBuilder {
 	}
 
 	/**
+	 * Преобразует php-объект или массив в xml-узел
+	 * @param multitype: object | array $array Добавляемый объект или массив
+	 * @param string $fragmentName Имя создаваемого xml элемента
+	 * @param string $keyName Имя элементов, соответсвующих элементам массива
+	 * @return DOMElement
+	 */
+	public function objectToNode ($object, $fragmentName = null, $keyName = null) {
+		$fragmentName = $fragmentName ?: (is_object($object) ? get_class($object) : 'node');
+		$fragment = $this->xml->createElement($fragmentName);
+		foreach ($object as $key => $value) {
+			$nodeName = $keyName ?: (!is_int($key) ? $key : 'node');
+			$node = (is_array($value) || is_object($value)) ? 
+				$this->objectToNode($value, $nodeName) : 
+				$this->xml->createElement($nodeName, $value);
+			$fragment->appendChild($node);
+		}
+		return $fragment;
+	}
+	
+	/**
 	 * Добавляет к объекту DOMDocument php-объект или массив
 	 * @param multitype: object | array $array Добавляемый объект или массив
 	 * @param string $fragmentName Имя создаваемого xml элемента
 	 * @param string $keyName Имя элементов, соответсвующих элементам массива
 	 */
-	public function appendObject($object, $fragmentName, $keyName = null) {
-		$fragment = $this->xml->createElement($fragmentName);
-		foreach ($object as $key => $value) {
-			$nodeName = ($keyName) ? $keyName : $key;
-			$node = $this->xml->createElement($nodeName, $value);
-			$fragment->appendChild($node);
-		}
-		$this->xml->appendChild($fragment);
-		return $this;
-	}
-
-	/**
-	 * Добавляет к объекту DOMDocument многомерный массив
-	 * @param array $array Добавляемый многомерный массив
-	 * @param string $fragmentName Имя создаваемого xml элемента
-	 */
-	public function appendArray($array, $fragmentName) {
-		$fragment = $this->xml->createElement($fragmentName);
-		foreach ($array as $key => $value) {
-			$node = $this->xml->createElement('node');
-			$f=mysql_fetch_array($resourse, MYSQL_ASSOC);
-			foreach ($f as $key=>$value){
-				$field = $this->xml->createElement($key, $value);
-				$line->appendChild($field);
-			}
-			$fragment->appendChild($line);
-		}
+	public function appendObject($object, $fragmentName = null, $keyName = null) {
+		$fragment = $this->objectToNode($object, $fragmentName, $keyName);
 		$this->xml->appendChild($fragment);
 		return $this;
 	}
