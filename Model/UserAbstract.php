@@ -2,7 +2,8 @@
 
 namespace Xorc\Model;
 
-use Xorc\Model\DataBase\MySqli as MySqli;
+use Xorc\Model\DataBase\MySqli 	as MySqli,
+	\Exception 					as Exception;
 
  abstract class UserAbstract extends MySqli {
 
