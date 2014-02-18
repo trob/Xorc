@@ -57,7 +57,7 @@
 
 	<xsl:template name="Footer">
 		<footer>
-			<div ="mainfooter"></div>
+			<div class="mainfooter"></div>
 			<div class="copyright">Copyright &#169; 2009 Казаков Роман Владимирович</div>
 			<div class="designed">Designed by RC21</div>
 		</footer>

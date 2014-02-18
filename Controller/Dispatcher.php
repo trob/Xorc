@@ -18,6 +18,12 @@ class Dispatcher{
 	protected $registry;
 
 	/**
+	 * Namespace приложения
+	 * @var string
+	 */
+	protected $appNameSpace;
+	
+	/**
 	* Путь к дериктории контроллеров
 	* @var <i>string</i>
 	*/
@@ -46,8 +52,9 @@ class Dispatcher{
 	 * @param <i>array</i> <b>$request</b> Объект запроса
 	 * @param <i>string</i> <b>$controllersPath</b> Путь к дериктории контроллеров
 	 */
-	public function __construct() {
+	public function __construct($appNameSpace) {
 		$this->registry =& Registry::getInstance();
+		$this->appNameSpace = $appNameSpace;
 		$this->controllersPath = $this->registry['path']['controllers'];
 		$this->moduleName = isset($this->registry['module']) ? $this->registry['module'].'/' : '';
 		$this->controllerName = $this->registry['controller'];
@@ -65,8 +72,10 @@ class Dispatcher{
 			if (!file_exists($file)) throw new Exception();
 			require_once $file;
 
-			if (!class_exists('ErrorController')) throw new Exception();
-			$controller = new ErrorController();
+			$fullClassName = $this->appNameSpace.'\\ErrorController';
+			
+			if (!class_exists($fullClassName)) throw new Exception();
+			$controller = new $fullClassName;
 			$this->registry['controller'] = 'ErrorController';
 
 			if (!method_exists($controller, 'indexAction')) throw new Exception();
@@ -83,24 +92,26 @@ class Dispatcher{
 	 * @param string $appNameSpace - Namespace приложения
 	 * @throws <i>Exception</i> Неудалось запустить контроллер: не найден файл, нет класса, нет метода
 	 */
-	public function dispatch($appNameSpace) {
+	public function dispatch() {
 		try {
 			$file = $this->controllersPath.$this->moduleName.$this->controllerName.'.php';
 			
-			if (!file_exists($file)) throw new Exception();
+			if (!file_exists($file)) throw new Exception('Controller file does not found');
 			require_once $file;
 			
-			$fullClassName = $appNameSpace.'\\'.$this->controllerName;
+			$fullClassName = $this->appNameSpace.'\\'.$this->controllerName;
 			
-			if (!class_exists($fullClassName)) throw new Exception();
+			//echo $fullClassName;
+			if (!class_exists($fullClassName)) throw new Exception('Controller class does not found');
 			$controller = new $fullClassName;
 
-			if (!method_exists($controller, $this->actionName)) throw new Exception();
+			if (!method_exists($controller, $this->actionName)) throw new Exception('Action does not found');
 			$action = $this->actionName;
 			$controller->$action();
 
 		} catch (Exception $e) {
-			$this->errorController();
+			echo $e->getMessage();
+			//$this->errorController();
 		}
 
 	}

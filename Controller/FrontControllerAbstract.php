@@ -92,8 +92,8 @@ class FrontControllerAbstract {
 	 * Вызывает диспетчер контроллеров
 	 */
 	protected function dispatcher() {
-		$dispatcher = new Dispatcher();
-		$dispatcher->dispatch($this->appNameSpace);
+		$dispatcher = new Dispatcher($this->appNameSpace);
+		$dispatcher->dispatch();
 		return $this;
 	}
 
