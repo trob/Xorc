@@ -48,6 +48,7 @@ class FrontControllerAbstract {
 	
 	protected function libAutoloader($class) {
 		if (strpos($class, 'Xorc') === 0) require_once $this->config[path][lib] . $class . '.php';
+		else require_once $this->config[path][app] . $class . '.php';
 	}
 	
 	/**

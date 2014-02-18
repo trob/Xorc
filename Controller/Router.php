@@ -59,7 +59,7 @@ class Router{
 		if ($baseUrl) {
 			$len = strlen($baseUrl);
 			// базовый url не содержится в REQUEST_URI
-			if (strpos($_SERVER['REQUEST_URI'], $baseUrl) === false) die('BaseURI in the config file is wrong');
+			if (strpos($_SERVER['REQUEST_URI'], $baseUrl) === false) die('BaseURI in the config file is wrong'); // TODO: throw exception
 			$this->uri = substr($_SERVER['REQUEST_URI'], $len);
 		// если базовый url не передан
 		}else{
