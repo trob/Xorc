@@ -90,8 +90,10 @@ class Router{
 	 * Находит маршрут, соответсвующий uri
 	 */
 	protected function getRoute() {
+		// переворачиваем массив маршрутов, чтоб дефолтный использовался последним, а первым - добавленный последним
 		$routes = array_reverse($this->routes);
 
+		// перебираем маршруты, ищем первый совпадающий с uri, записываем его ключ (имя) в $this->route
 		foreach ($routes as $name => $route) {
 			if (preg_match($route['pattern'], $this->uri)){
 				$this->route = $name;
@@ -106,27 +108,35 @@ class Router{
 	 * Разбивает Url на части по слешу (/)
 	 */
 	protected function explodeUrl() {
+		
+		// вырезаем из uri его path (после хоста и до параметров)
 		$path = parse_url($this->uri, PHP_URL_PATH);
+		
+		// разбиваем path по слешу
 		$this->routeParts = explode('/', $path);
 
 		return $this;
 	}
 
 	protected function getModuleName() {
-
+		
+		// если в выбранном маршруте указан модуль, используем его
 		if (isset( $this->routes[$this->route]['module'] )) {
 			$this->registry['module'] = $this->routes[$this->route]['module'];
 			$this->moduleShift = 0;
 			return $this;
 		}
-
+		
+		// если path состоит из одного компонента - это модуль, используем его
 		if (empty($this->routeParts[1])) {
 			$this->moduleShift = 0;
 			return $this;
 		}
 
-		if (is_dir($this->registry['path']['controllers'] . $this->routeParts[1])) {
-			$this->registry['module'] = $this->routeParts[1];
+		// TODO: проверить, возможно другой механизм, например, регистрация модулей в конфиге
+		// если в директории контроллеров есть папка с названием как первый компонент path - это модуль, используем его
+		if (is_dir($this->registry['path']['app'] . $this->registry['ns']['controllers'] . $this->routeParts[0])) {
+			$this->registry['module'] = $this->routeParts[0];
 			$this->moduleShift = 1;
 			return $this;
 		}
