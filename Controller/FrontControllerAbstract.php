@@ -20,8 +20,6 @@ class FrontControllerAbstract {
 	 * @var Router
 	 */
 	protected $router;
-
-	protected $appNameSpace;
 	
 	/**
 	 * Конструктор класса
@@ -42,11 +40,11 @@ class FrontControllerAbstract {
 	 * Загрузчик классов
 	 */
 	protected  function autoloader() {
-		spl_autoload_register(array($this, 'libAutoloader'));
+		spl_autoload_register(array($this, 'defaultAutoloader'));
 		return  $this;
 	}
 	
-	protected function libAutoloader($class) {
+	protected function defaultAutoloader($class) {
 		if (strpos($class, 'Xorc') === 0) require_once $this->config[path][lib] . $class . '.php';
 		else require_once $this->config[path][app] . $class . '.php';
 	}
@@ -92,7 +90,7 @@ class FrontControllerAbstract {
 	 * Вызывает диспетчер контроллеров
 	 */
 	protected function dispatcher() {
-		$dispatcher = new Dispatcher($this->appNameSpace);
+		$dispatcher = new Dispatcher();
 		$dispatcher->dispatch();
 		return $this;
 	}

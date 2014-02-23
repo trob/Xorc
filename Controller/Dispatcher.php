@@ -52,11 +52,9 @@ class Dispatcher{
 	 * @param <i>array</i> <b>$request</b> Объект запроса
 	 * @param <i>string</i> <b>$controllersPath</b> Путь к дериктории контроллеров
 	 */
-	public function __construct($appNameSpace) {
+	public function __construct() {
 		$this->registry =& Registry::getInstance();
-		$this->appNameSpace = $appNameSpace;
-		$this->controllersPath = $this->registry['path']['controllers'];
-		$this->moduleName = isset($this->registry['module']) ? $this->registry['module'].'/' : '';
+		$this->moduleName = isset($this->registry['module']) ? $this->registry['module'].'\\' : '';
 		$this->controllerName = $this->registry['controller'];
 		$this->actionName = $this->registry['action'];
 	}
@@ -66,13 +64,9 @@ class Dispatcher{
 	 * @throws <i>Exception</i> Неудалось запустить ErrorController: не найден файл, нет класса, нет метода
 	 */
 	protected function errorController() {
-		try {
-			$file = $this->controllersPath.'ErrorController.php';
+		try {		
 
-			if (!file_exists($file)) throw new Exception();
-			require_once $file;
-
-			$fullClassName = $this->appNameSpace.'\\ErrorController';
+			$fullClassName = $this->registry['ns']['controllers'] . 'ErrorController';
 			
 			if (!class_exists($fullClassName)) throw new Exception();
 			$controller = new $fullClassName;
@@ -94,14 +88,9 @@ class Dispatcher{
 	 */
 	public function dispatch() {
 		try {
-			$file = $this->controllersPath.$this->moduleName.$this->controllerName.'.php';
 			
-			if (!file_exists($file)) throw new Exception('Controller file does not found');
-			require_once $file;
+			$fullClassName = $this->registry['ns']['controllers'] . $this->moduleName . $this->controllerName;
 			
-			$fullClassName = $this->appNameSpace.'\\'.$this->controllerName;
-			
-			//echo $fullClassName;
 			if (!class_exists($fullClassName)) throw new Exception('Controller class does not found');
 			$controller = new $fullClassName;
 
@@ -110,8 +99,9 @@ class Dispatcher{
 			$controller->$action();
 
 		} catch (Exception $e) {
-			echo $e->getMessage();
-			//$this->errorController();
+			//echo $e->getMessage();
+			
+			$this->errorController();
 		}
 
 	}

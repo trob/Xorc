@@ -86,14 +86,6 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		return $this;
 	}
 
-	public function update() {
-
-	}
-
-	public function delete() {
-
-	}
-
 	/**
 	 * Проверяет авторизацию пользователя
 	 * @throws <i>Exception</i> Если пользователь не авторизован выбрасывается исключение

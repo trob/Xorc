@@ -70,9 +70,9 @@ class Router{
 
 		// маршрут по умолчанию
 		$this->routes['default'] = array('pattern'		=> '/\/.*/',
-										 'controller'	=> 1,
-										 'action'		=> 2,
-										 'params'		=> 3
+										 'controller'	=> 0,
+										 'action'		=> 1,
+										 'params'		=> 2
 		);
 
 	}
@@ -109,8 +109,8 @@ class Router{
 	 */
 	protected function explodeUrl() {
 		
-		// вырезаем из uri его path (после хоста и до параметров)
-		$path = parse_url($this->uri, PHP_URL_PATH);
+		// вырезаем из uri его path (после хоста и до параметров) и срезаем слешы в начале и конце
+		$path = trim(parse_url($this->uri, PHP_URL_PATH), '/');
 		
 		// разбиваем path по слешу
 		$this->routeParts = explode('/', $path);
@@ -118,6 +118,10 @@ class Router{
 		return $this;
 	}
 
+	/**
+	 * Извлекает имя модуля контроллеров из выбранного маршрута
+	 * @return \Xorc\Controller\Router
+	 */
 	protected function getModuleName() {
 		
 		// если в выбранном маршруте указан модуль, используем его
@@ -127,8 +131,8 @@ class Router{
 			return $this;
 		}
 		
-		// если path состоит из одного компонента - это модуль, используем его
-		if (empty($this->routeParts[1])) {
+		// если path пустой - модуля нет
+		if (empty($this->routeParts[0])) {
 			$this->moduleShift = 0;
 			return $this;
 		}
@@ -147,30 +151,52 @@ class Router{
 	}
 
 	/**
-	 * Извлекает имя контроллера
+	 * Извлекает имя контроллера из выбранного маршрута
+	 * @return \Xorc\Controller\Router
 	 */
 	protected function getControllerName() {
+		
+		// достаем из выбранного маршрута название контроллера
 		$controllerName = $this->routes[$this->route]['controller'];
+		
+		// если это число, значит имя контроллера содержится в одной из частей маршрута => извлекаем ее
 		if (is_int($controllerName)) {
+			// если был найден модуль, необходимо сдвинуть имя на единицу
 			$controllerNum = $controllerName + $this->moduleShift;
+			// если соответствующая част маршрута не пустая, берем ее в качестве имени, если нет - Index
 			$controllerPrefix = !empty($this->routeParts[$controllerNum]) ? ucfirst($this->routeParts[$controllerNum]) : 'Index';
+			// склеиваем имя контроллера
 			$this->registry['controller'] = $controllerPrefix . 'Controller';
+			
+		// если имя контроллера из маршрута не число, значит используем несредственно его
 		} else {
 			$this->registry['controller'] = $controllerName;
 		}
-
+	
+		
+		
 		return $this;
 	}
 
 	/**
-	 * Извлекает имя действия
+	 * Извлекает имя действия из выбранного маршрута
+	 * @return \Xorc\Controller\Router
 	 */
 	protected function getActionName() {
+		
+		// достаем из выбранного маршрута название действия
 		$actionName = $this->routes[$this->route]['action'];
+		
+		// если это число, значит имя действия содержится в одной из частей маршрута => извлекаем ее
 		if (is_int($actionName)) {
+			// если был найден модуль, необходимо сдвинуть имя на единицу
 			$actionNum = $actionName + $this->moduleShift;
+			// если соответствующая част маршрута не пустая, берем ее в качестве имени, если нет - index
 			$actionPrefix = !empty($this->routeParts[$actionNum]) ? $this->routeParts[$actionNum] : 'index';
+			// склеиваем имя действия
 			$this->registry['action'] = $actionPrefix . 'Action';
+			
+		// если имя действия из маршрута не число, значит используем несредственно его
 		} else {
 			$this->registry['action'] = $actionName;
 		}
@@ -180,14 +206,17 @@ class Router{
 
 	/**
 	 * Извлекает параметры
+	 * @return \Xorc\Controller\Router
 	 */
 	protected function getParams() {
 
 		// если в выбранном маршруте нет правила для params => выход
 		if (!isset($this->routes[$this->route]['params'])) return $this;
 
+		// если был найден модуль - сдвигаем на единицу
 		$paramsNum = $this->routes[$this->route]['params'] + $this->moduleShift;
 
+		// если в маршруте не содержится параметров => выход
 		if (count($this->routeParts) <= $paramsNum) return $this;
 
 		// записываем в реестр

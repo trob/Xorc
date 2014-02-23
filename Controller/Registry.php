@@ -18,8 +18,8 @@ class Registry {
 	 */
 	protected static $registry = Array();
 
-	protected function __construct() {}
-	protected function __clone() {}
+	private function __construct() {}
+	private function __clone() {}
 
 	/**
 	 * Записывает значение в реестр
