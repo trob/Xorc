@@ -64,7 +64,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 
 	}
 
-	public function registry($prop) {
+	public function add($prop) {
 
 		//проверяем логин и пароль на пустоту
 		if (empty($prop['login']) || empty($prop['password'])) throw new Exception($this->exceptionMessages[0]);
