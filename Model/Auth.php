@@ -8,6 +8,7 @@ require_once 'MySql.php';
  * Класс аутентификации
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
  * @version 1.0 beta
+ * @deprecated
  */
 class Auth extends MySql {
 

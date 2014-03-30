@@ -3,6 +3,7 @@
 namespace Xorc\Model;
 
 use Xorc\Model\DataBase\MySqli 	as MySqli,
+	Xorc\Controller\Mail 		as Mail,
 	\Exception 					as Exception;
 
  abstract class UserAbstract extends MySqli {
@@ -41,14 +42,14 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		parent::__construct();
 
 		$this->exceptionMessages = array(
-			0 => 'Необходимо заполнить все поля.',
-			1 => 'Нет пользователя с таким именем.',
-			2 => 'Неверный пароль.',
-			3 => 'Доступ запрещен.',
-			4 => 'Пользователь с таким именем уже существует. Выбирите другой логин.',
-			5 => 'Длинна логина от ' . $this->loginMinLength . ' до ' . $this->loginMaxLength . ' символов.',
-			6 => 'Длинна проля от ' . $this->passwordMinLength . ' до ' . $this->passwordMaxLength . ' символов.',
-			7 => 'При регистрации возникла ошибка. Попробуйте еще раз.'
+			0 => 'You need to fill all fields.',
+			1 => 'No user with such name.',
+			2 => 'Wrong password.',
+			3 => 'Access denied.',
+			4 => 'User with such name already exists. Choose another name',
+			5 => 'Login length must be from ' . $this->loginMinLength . ' till ' . $this->loginMaxLength . ' symbols.',
+			6 => 'Password length must be from ' . $this->passwordMinLength . ' till ' . $this->passwordMaxLength . ' symbols.',
+			7 => 'Registration error. Try again.'
 		);
 
 		$this->initExtendProperties();
@@ -60,10 +61,17 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 */
 	abstract protected function initExtendProperties();
 
+	
 	public function get($id) {
 
 	}
 
+	/**
+	 * Добавить пользователя в базу
+	 * @param array $prop массив с логином и паролем
+	 * @throws Exception
+	 * @return \Xorc\Model\UserAbstract
+	 */
 	public function add($prop) {
 
 		//проверяем логин и пароль на пустоту
@@ -86,6 +94,23 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		return $this;
 	}
 
+	/**
+	 * Aктивация пользователя
+	 */
+	public function activate() {
+		
+		return $this;
+	}
+	
+	/**
+	 * Регистрация пользователя (добавление в базу и отправка email)
+	 */
+	public function register($prop) {
+		$this->add($prop);
+		
+		return $this;
+	}
+	
 	/**
 	 * Проверяет авторизацию пользователя
 	 * @throws <i>Exception</i> Если пользователь не авторизован выбрасывается исключение

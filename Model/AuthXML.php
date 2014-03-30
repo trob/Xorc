@@ -6,6 +6,7 @@ namespace Xorc\Model;
  * Класс аутентификации c использованием XML
  * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
  * @version 2.0 beta
+ * @deprecated
  */
 class AuthXML {
 
