@@ -32,7 +32,9 @@ class Mail {
 		// если в конфиге тоже не определен, используем по умолчанию php mail()
 		if ($this->type == null) $this->type = 'phpmail';
 		
-		$mail = new $this->type();
+		$class = __NAMESPACE__ . '\\' . $this->type;
+		
+		$mail = new $class();
 	}
 	
 }
