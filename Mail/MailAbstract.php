@@ -19,6 +19,12 @@ abstract class MailAbstract {
 	protected $to;
 	
 	/**
+	 * Получатели сообщения ввиде строки
+	 * @var string
+	 */
+	protected $toStr;
+	
+	/**
 	 * Тема сообщения
  	 * @var sring
 	 */

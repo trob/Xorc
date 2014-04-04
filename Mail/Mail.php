@@ -23,21 +23,21 @@ class Mail {
 	 */
 	private $registry;
 	
-	public function __construct($type = null) {
+	static public function create($type = null) {
 		
 		// если тип передан в конструктор используем его
 		if ($type) $this->type = $type;
 		
 		// если не передан, используем из конфига
 		else {
-			$this->registry =& Registry::getInstance();
-			$this->type = $this->registry['mail']['type'];
+			$self->registry =& Registry::getInstance();
+			$self->type = $self->registry['mail']['type'];
 		}
 		
 		// если в конфиге тоже не определен, используем по умолчанию php mail()
-		if ($this->type == null) $this->type = 'phpmail';
+		if ($self->type == null) $self->type = 'phpmail';
 		
-		$class = __NAMESPACE__ . '\\' . $this->type;
+		$class = __NAMESPACE__ . '\\' . $self->type;
 		
 		return new $class();
 	}
