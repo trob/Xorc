@@ -4,6 +4,11 @@ namespace Xorc\Mail;
 
 use Xorc\Controller\Registry as Registry;
 
+/**
+ * Фабрика для почтового транспорта
+ * @author rc21
+ *
+ */
 class Mail {
 	
 	/**
@@ -34,7 +39,7 @@ class Mail {
 		
 		$class = __NAMESPACE__ . '\\' . $this->type;
 		
-		$mail = new $class();
+		return new $class();
 	}
 	
 }

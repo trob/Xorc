@@ -1,10 +1,10 @@
 <?php
 namespace Xorc\Mail;
 
-class Phpmail {
+class Phpmail extends MailAbstract {
 	
-	public function __construct() {
-		echo 'phpmail';
+	public function send() {
+		\mail($this->to, $this->subject, $this->message);
 	}
 	
 }
