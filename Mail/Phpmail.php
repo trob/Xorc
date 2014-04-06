@@ -1,15 +1,23 @@
 <?php
 namespace Xorc\Mail;
 
-class Phpmail extends MailAbstract {
+class Phpmail extends Mail {
 	
+	/**
+	 * (non-PHPdoc)
+	 * @see \Xorc\Mail\Mail::send()
+	 */
 	public function send() {
 		
-		foreach ($this->to as $key=>$value) {
-			$this->toStr .= $value;
-		}
+		$this->commonHeaders();
 		
-		\mail($this->toStr, $this->subject, $this->message);
+		// Отправляем почту
+		mail(
+				implode(',', $this->to),
+				$this->subject,
+				$this->message,
+				implode("\r\n", $this->headers)
+			);
 	}
 	
 }
