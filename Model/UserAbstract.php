@@ -6,30 +6,83 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	Xorc\Controller\Mail 		as Mail,
 	\Exception 					as Exception;
 
+/**
+ * Класс для работы с пользователями
+ * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
+ *
+ */
  abstract class UserAbstract extends MySqli {
 
+ 	/**
+ 	 * Название таблицы пользователей в БД
+ 	 * @var string
+ 	 */
 	protected $userDBtable;
 
+	/**
+	 * Название поля с id
+	 * @var string
+	 */
 	protected $idField = 'id';
 
+	/**
+	 * Название поля с логином
+	 * @var string
+	 */
 	protected $loginField = 'login';
 
+	/**
+	 * Название поля с паролем (хеш пароля)
+	 * @var string
+	 */
 	protected $passwordField = 'password';
 
+	/**
+	 * Название сессии
+	 * @var string
+	 */
 	protected $sessionName = 'Xorc_session';
 
+	/**
+	 * Минимальная длина логина
+	 * @var integer
+	 */
 	protected $loginMinLength = 3;
 
+	/**
+	 * Максимальная длина логина
+	 * @var integer
+	 */
 	protected $loginMaxLength = 50;
 
+	/**
+	 * Минимальная длина пароля
+	 * @var integer
+	 */
 	protected $passwordMinLength = 5;
 
+	/**
+	 * Максимальная длина пароля
+	 * @var integer
+	 */
 	protected $passwordMaxLength = 50;
 
+	/**
+	 * ID пользователя
+	 * @var string
+	 */
 	protected $id;
 
+	/**
+	 * Логин пользователя
+	 * @var string
+	 */
 	protected $login;
 
+	/**
+	 * Хэш пароля
+	 * @var string
+	 */
 	protected $passwordHash;
 
 	/**
@@ -38,9 +91,15 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 */
 	protected $exceptionMessages;
 
+	/**
+	 * Конструктор класса
+	 */
 	public function __construct() {
+		
+		// Выполняем родительский конструктор: подключение к БД и т.д.
 		parent::__construct();
 
+		// Заполняем массив сообщений об ошибках
 		$this->exceptionMessages = array(
 			0 => 'You need to fill all fields.',
 			1 => 'No user with such name.',
@@ -52,18 +111,25 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 			7 => 'Registration error. Try again.'
 		);
 
+		// выполняем дополнительные действия из наследуемых классов
 		$this->initExtendProperties();
 	}
 
 	/**
+	 * Абстрактный класс, вызывается в конце конструктора
 	 * Необходимо задать:
 	 * $this->userDBtable - имя таблицы с пользователями
 	 */
 	abstract protected function initExtendProperties();
 
-	
+	/**
+	 * Получить пользователя по ID
+	 * @param string $id
+	 * @return \Xorc\Model\UserAbstract
+	 */
 	public function get($id) {
-
+		//TODO: реализация
+		return $this;
 	}
 
 	/**
@@ -74,21 +140,21 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 */
 	public function add($prop) {
 
-		//проверяем логин и пароль на пустоту
+		// Проверяем логин и пароль на пустоту
 		if (empty($prop['login']) || empty($prop['password'])) throw new Exception($this->exceptionMessages[0]);
 
-		// ограничения длинны логина и пароля
+		// Ограничения длинны логина и пароля
 		if (strlen($prop['login']) < $this->loginMinLength || strlen($prop['login']) > $this->loginMaxLength) throw new Exception($this->exceptionMessages[5]);
 		if (strlen($prop['password']) < $this->passwordMinLength || strlen($prop['password']) > $this->passwordMaxLength) throw new Exception($this->exceptionMessages[6]);
 
-		//экранируем логин и пароль
+		// Экранируем логин и пароль
 		$this->login = $this->escape($prop['login'], 'str');
 		$this->passwordHash = md5($this->escape($prop['password'], 'str'));
 
-		//проверяем есть ли пользователь с таким логином
+		// Проверяем есть ли пользователь с таким логином
 		if ($this->getObjectByParam($this->userDBtable, $this->loginField, $this->login)) throw new Exception($this->exceptionMessages[4]);
 
-		// добавляем в базу
+		// Добавляем в базу
 		if (!$this->insertByPos($this->userDBtable, array(null, $this->login, $this->passwordHash))) throw new Exception($this->exceptionMessages[7]);
 
 		return $this;
@@ -96,6 +162,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 
 	/**
 	 * Aктивация пользователя
+	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function activate() {
 		
@@ -104,6 +171,8 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	
 	/**
 	 * Регистрация пользователя (добавление в базу и отправка email)
+	 * @param array $prop массив с логином и паролем
+	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function register($prop) {
 		$this->add($prop);
@@ -114,6 +183,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	/**
 	 * Проверяет авторизацию пользователя
 	 * @throws <i>Exception</i> Если пользователь не авторизован выбрасывается исключение
+	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function auth() {
 
@@ -132,10 +202,11 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	/**
 	 * Авторизует пользователя
 	 * @throws <i>Exception</i> Если данные для авторизации не верны выбрасывается исключение
+	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function login() {
 
-		//Если не введено именя пользователя - показываем лог-форму
+		// Если не введено именя пользователя - показываем лог-форму
 		if (!isset($_POST[$this->loginField])) throw new Exception($this->exceptionMessages[0]);
 
 		$userLogin = $this->escape($_POST[$this->loginField], 'str');
@@ -143,7 +214,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		// Имя пользователя введено - ищем его в базе
 		$user = $this->getObjectByParam($this->userDBtable, $this->loginField, $userLogin, 'assoc');
 
-		//Нет пользователя с таким именем
+		// Нет пользователя с таким именем
 		if (!$user){
 			unset($_POST[$this->loginField], $_POST[$this->passwordField], $user, $userLogin);
 			throw new Exception($this->exceptionMessages[1]);
@@ -175,6 +246,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 
 	/**
 	 * Разлогинивает пользователя
+	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function logout() {
 		session_name($this->sessionName);
