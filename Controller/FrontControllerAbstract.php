@@ -4,8 +4,11 @@ namespace Xorc\Controller;
 
 /**
  * Фронт контроллер
- * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
+ * @package Xorc framework
+ * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com> http://rc21net.ru
  * @version 1.0
+ * @copyright Copyright (c) 2013 Roman Kazakov http://rc21net.ru
+ * @license GNU General Public License v2 or later http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FrontControllerAbstract {
 
@@ -15,6 +18,12 @@ class FrontControllerAbstract {
 	 */
 	protected  $config;
 
+	/**
+	 * Реестр
+	 * @var array
+	 */
+	protected $registry;
+	
 	/**
 	 * Маршрутизатор
 	 * @var Router
@@ -54,13 +63,15 @@ class FrontControllerAbstract {
 	 */
 	protected function registry() {
 
+		$this->registry =& Registry::getInstance();
+		
 		foreach ($this->config as $key => $value) {
-			Registry::set($key, $value);
+			$this->registry[$key] = $value;
 		}
 
 		unset($this->config);
 
-		$this->config =& Registry::getInstance();
+		$this->config =& $this->registry;
 
 		return $this;
 	}

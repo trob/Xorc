@@ -4,8 +4,11 @@ namespace Xorc\Controller;
 
 /**
  * Класс для подсчета времени генерации страницы.
- * @author Roman Kazakov (a.k.a. RC21) <rc21@mail.ru>
- * @version 1.0.20110918
+ * @package Xorc framework
+ * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com> http://rc21net.ru
+ * @version 1.0
+ * @copyright Copyright (c) 2013 Roman Kazakov http://rc21net.ru
+ * @license GNU General Public License v2 or later http://www.gnu.org/licenses/gpl-2.0.html
  */
 class ExecTime {
 

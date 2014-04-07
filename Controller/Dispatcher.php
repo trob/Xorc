@@ -5,9 +5,11 @@ use \Exception as Exception;
 
 /**
  * Диспетчер контроллеров
- * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
+ * @package Xorc framework
+ * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com> http://rc21net.ru
  * @version 1.0
- *
+ * @copyright Copyright (c) 2013 Roman Kazakov http://rc21net.ru
+ * @license GNU General Public License v2 or later http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Dispatcher{
 
