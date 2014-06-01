@@ -196,7 +196,8 @@ class MySqli {
 		}
 		$query .= ")";
 
-		return $this->query($query);
+		if ($this->query($query)) return $this->db->insert_id();
+		else return false;
 	}
 
 	/**
@@ -225,7 +226,8 @@ class MySqli {
 		$query_2 .= ")";
 		$query = $query_1 . $query_2;
 
-		return $this->query($query);
+		if ($this->query($query)) return $this->db->insert_id();
+		else return false;
 	}
 
 	/**
@@ -277,11 +279,12 @@ class MySqli {
 	 */
 	public function escape($variable, $type) {
 		switch ($type) {
-			case 'str':
+			case 'string':
+			case 'date':
 				$variable = $this->db->real_escape_string($variable);
 			break;
 
-			case 'int':
+			case 'integer':
 				$variable = (int) $variable;
 			break;
 		}

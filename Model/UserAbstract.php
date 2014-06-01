@@ -5,11 +5,15 @@ namespace Xorc\Model;
 use Xorc\Model\DataBase\MySqli 	as MySqli,
 	Xorc\Controller\Mail 		as Mail,
 	\Exception 					as Exception;
-
+use Xorc;
+	
 /**
  * Класс для работы с пользователями
- * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com>
- *
+ * @package Xorc framework
+ * @author Roman Kazakov (a.k.a. RC21) <rc21mail@gmail.com> http://rc21net.ru
+ * @version 1.0
+ * @copyright Copyright (c) 2013 Roman Kazakov http://rc21net.ru
+ * @license GNU General Public License v2 or later http://www.gnu.org/licenses/gpl-2.0.html
  */
  abstract class UserAbstract extends MySqli {
 
@@ -20,52 +24,16 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	protected $userDBtable;
 
 	/**
-	 * Название поля с id
-	 * @var string
+	 * Названия полей в базе данных
+	 * @var array
 	 */
-	protected $idField = 'id';
-
-	/**
-	 * Название поля с логином
-	 * @var string
-	 */
-	protected $loginField = 'login';
-
-	/**
-	 * Название поля с паролем (хеш пароля)
-	 * @var string
-	 */
-	protected $passwordField = 'password';
+	protected $userDBfields;
 
 	/**
 	 * Название сессии
 	 * @var string
 	 */
-	protected $sessionName = 'Xorc_session';
-
-	/**
-	 * Минимальная длина логина
-	 * @var integer
-	 */
-	protected $loginMinLength = 3;
-
-	/**
-	 * Максимальная длина логина
-	 * @var integer
-	 */
-	protected $loginMaxLength = 50;
-
-	/**
-	 * Минимальная длина пароля
-	 * @var integer
-	 */
-	protected $passwordMinLength = 5;
-
-	/**
-	 * Максимальная длина пароля
-	 * @var integer
-	 */
-	protected $passwordMaxLength = 50;
+	protected $sessionName;
 
 	/**
 	 * ID пользователя
@@ -86,11 +54,30 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	protected $passwordHash;
 
 	/**
+	 * Статус пользователя
+	 * @var integer
+	 */
+	protected $status;
+	
+	/**
+	 * Опциональные свойства пользователя
+	 * @var array
+	 */
+	protected $properties;
+	
+	/**
 	 * Массив сообщений об ошибках
 	 * @var array
 	 */
 	protected $exceptionMessages;
 
+	/**
+	 * Названия хранимых процедур
+	 * @var array
+	 */
+	protected $userDBprocedures;
+	
+	
 	/**
 	 * Конструктор класса
 	 */
@@ -99,6 +86,20 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		// Выполняем родительский конструктор: подключение к БД и т.д.
 		parent::__construct();
 
+		// Названия полей в таблице
+		$this->userDBfields = array(
+			'id' => new DBfield('id', true, 'integer', null, null),
+			'login' => new DBfield('login', true, 'string', 3, 50),
+			'password' => new DBfield('password', true, 'string', 5, 50),
+			'status' => new DBfield('status', true, 'integer', null, null),
+			'email' => new DBfield('email', false, 'string', null, null),
+			'registrationDate' => new DBfield('registrationDate', false, 'date', null, null),
+			'lastAccessDate' => new DBfield('lastAccessDate', false, 'date', null, null)
+		);
+		
+		// Название сессии
+		$this->sessionName = 'Xorc_session';
+		
 		// Заполняем массив сообщений об ошибках
 		$this->exceptionMessages = array(
 			0 => 'You need to fill all fields.',
@@ -106,12 +107,15 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 			2 => 'Wrong password.',
 			3 => 'Access denied.',
 			4 => 'User with such name already exists. Choose another name',
-			5 => 'Login length must be from ' . $this->loginMinLength . ' till ' . $this->loginMaxLength . ' symbols.',
-			6 => 'Password length must be from ' . $this->passwordMinLength . ' till ' . $this->passwordMaxLength . ' symbols.',
-			7 => 'Registration error. Try again.'
+			5 => 'Login length must be from ' . $this->userDBfields['login']->minValue . ' till ' . $this->userDBfields['login']->maxValue . ' symbols.',
+			6 => 'Password length must be from ' . $this->userDBfields['password']->minValue . ' till ' . $this->userDBfields['password']->maxValue . ' symbols.',
+			7 => 'Registration error. Try again.',
+			8 => 'Email needs for registration.',
+			9 => 'No user with such id.',
+			10 => 'Wrong activation parameters'
 		);
 
-		// выполняем дополнительные действия из наследуемых классов
+		// Выполняем дополнительные действия из наследуемых классов
 		$this->initExtendProperties();
 	}
 
@@ -128,7 +132,13 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 * @return \Xorc\Model\UserAbstract
 	 */
 	public function get($id) {
-		//TODO: реализация
+		
+		if ($this->userDBprocedures['get'] != null) {
+			if (!$this->properties = $this->callProcedure($this->userDBprocedures['get'], $id)) throw new Exception($this->exceptionMessages[9]);
+		}
+		else {
+			if (!$this->properties = $this->getObjectByParam($this->userDBtable, $this->userDBfields['id']->name, $id , 'assoc')) throw new Exception($this->exceptionMessages[9]);
+		}
 		return $this;
 	}
 
@@ -140,31 +150,57 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 */
 	public function add($prop) {
 
+		$login = $prop[$this->userDBfields['login']->name];
+		$password = $prop[$this->userDBfields['password']->name];
+		
 		// Проверяем логин и пароль на пустоту
-		if (empty($prop['login']) || empty($prop['password'])) throw new Exception($this->exceptionMessages[0]);
+		if (empty($login) || empty($password)) throw new Exception($this->exceptionMessages[0]);
 
 		// Ограничения длинны логина и пароля
-		if (strlen($prop['login']) < $this->loginMinLength || strlen($prop['login']) > $this->loginMaxLength) throw new Exception($this->exceptionMessages[5]);
-		if (strlen($prop['password']) < $this->passwordMinLength || strlen($prop['password']) > $this->passwordMaxLength) throw new Exception($this->exceptionMessages[6]);
+		if (strlen($login) < $this->userDBfields['login']->minValue || strlen($login) > $this->userDBfields['login']->maxValue) throw new Exception($this->exceptionMessages[5]);
+		if (strlen($password) < $this->userDBfields['password']->minValue || strlen($password) > $this->userDBfields['password']->maxValue) throw new Exception($this->exceptionMessages[6]);
 
 		// Экранируем логин и пароль
-		$this->login = $this->escape($prop['login'], 'str');
-		$this->passwordHash = md5($this->escape($prop['password'], 'str'));
+		$this->properties['login'] = $this->escape($login, 'str');
+		$this->properties['password'] = md5($this->escape($password, 'str'));
 
 		// Проверяем есть ли пользователь с таким логином
-		if ($this->getObjectByParam($this->userDBtable, $this->loginField, $this->login)) throw new Exception($this->exceptionMessages[4]);
+		if ($this->getObjectByParam($this->userDBtable, $this->userDBfields['login']->name, $this->login)) throw new Exception($this->exceptionMessages[4]);
 
+		// экранируем и добавляем в массив осиальные свойства
+		foreach ($this->userDBfields as $key => $property) {
+			$this->properties[$property->name] = $prop[$property->name] ? $this->escape($prop[$property->name], $property->type) : null;
+		}
+		
 		// Добавляем в базу
-		if (!$this->insertByPos($this->userDBtable, array(null, $this->login, $this->passwordHash))) throw new Exception($this->exceptionMessages[7]);
-
+		if ($this->userDBprocedures['add'] != null) {
+			if (!$this->callProcedure($this->userDBprocedures['add'], $this->properties)) throw new Exception($this->exceptionMessages[7]);
+		}
+		else {
+			if (!$this->properties['id'] = $this->insertByName($this->userDBtable, $this->properties)) throw new Exception($this->exceptionMessages[7]);
+		}
+		
 		return $this;
 	}
 
 	/**
-	 * Aктивация пользователя
+	 * Активация пользователя
+	 * @param integer $id - ID пользователя
+	 * @param string $solt - секрет для активации
+	 * @throws \Exception
 	 * @return \Xorc\Model\UserAbstract
 	 */
-	public function activate() {
+	public function activate($id, $solt) {
+		
+		$this->get($this->escape($id, 'integer'));
+		
+		$registerSolt = md5($this->properties['email'].$this->properties['registrationDate']);
+		
+		if ($registerSolt == $this->escape($solt, 'string')) {
+			$this->update($this->userDBtable, array($this->userDBfields['status']->name, 1), $this->userDBfields['id']->name, $this->properties['id']);
+		} else {
+			throw new \Exception($this->exceptionMessages[10]);
+		}
 		
 		return $this;
 	}
@@ -174,8 +210,32 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	 * @param array $prop массив с логином и паролем
 	 * @return \Xorc\Model\UserAbstract
 	 */
-	public function register($prop) {
+	public function register($prop, $message) {
+		
+		// дата регистрации
+		$this->properties['registrationDate'] = time();
+		
+		// устанавливаем статус
+		$this->properties['status'] = 0;
+		
+		// добавляем пользователя
 		$this->add($prop);
+		
+		// если не указан email, выбрасываем ошибку
+		if ($this->properties['email'] == null) throw new \Exception($this->exceptionMessages[8]);
+		
+		// секрет для активации
+		$registerSolt = md5($this->properties['email'].$this->properties['registrationDate']);
+		
+		$search = array('{id}', '{solt}');
+		$replace = array($this->properties['id'], $registerSolt);
+		
+		// отправляем сообщение
+		$mail = Xorc\Mail\Mail::create();
+		$mail 	->to($this->properties['email'])
+				->subject($message['subgect'])
+				->message(str_replace($search, $replace, $message['body']))
+				->send();
 		
 		return $this;
 	}
@@ -207,30 +267,30 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 	public function login() {
 
 		// Если не введено именя пользователя - показываем лог-форму
-		if (!isset($_POST[$this->loginField])) throw new Exception($this->exceptionMessages[0]);
+		if (!isset($_POST[$this->userDBfields['login']->name])) throw new Exception($this->exceptionMessages[0]);
 
-		$userLogin = $this->escape($_POST[$this->loginField], 'str');
+		$userLogin = $this->escape($_POST[$this->userDBfields['login']->name], 'str');
 
 		// Имя пользователя введено - ищем его в базе
-		$user = $this->getObjectByParam($this->userDBtable, $this->loginField, $userLogin, 'assoc');
+		$user = $this->getObjectByParam($this->userDBtable, $this->userDBfields['login']->name, $userLogin, 'assoc');
 
 		// Нет пользователя с таким именем
 		if (!$user){
-			unset($_POST[$this->loginField], $_POST[$this->passwordField], $user, $userLogin);
+			unset($_POST[$this->userDBfields['login']->name], $_POST[$this->userDBfields['password']->name], $user, $userLogin);
 			throw new Exception($this->exceptionMessages[1]);
 		}
 
 		// Проверяем пароль
-		$userPasswordHash = md5($this->escape($_POST[$this->passwordField], 'str'));
+		$userPasswordHash = md5($this->escape($_POST[$this->userDBfields['password']->name], 'str'));
 
 		// Неверный пароль
-		if ($userPasswordHash != $user[$this->passwordField]){
-			unset($_POST[$this->loginField], $_POST[$this->passwordField], $user, $pwd);
+		if ($userPasswordHash != $user[$this->userDBfields['password']->name]){
+			unset($_POST[$this->userDBfields['login']->name], $_POST[$this->userDBfields['password']->name], $user, $pwd);
 			throw new Exception($this->exceptionMessages[2]);
 		}
 
 		// Авторизация успешна
-		$userID = (int) $user[$this->idField];
+		$userID = (int) $user[$this->userDBfields['id']->name];
 
 		$hash = $this->getSessionHash($userID);
 
@@ -239,7 +299,7 @@ use Xorc\Model\DataBase\MySqli 	as MySqli,
 		$_SESSION['id'] = $userID;
 		$_SESSION['hash'] = $hash;
 
-		unset($userLogin, $user, $userPasswordHash, $userid, $solt, $ip, $browserData, $hash, $_POST[$this->loginField], $_POST[$this->passwordField]);
+		unset($userLogin, $user, $userPasswordHash, $userid, $solt, $ip, $browserData, $hash, $_POST[$this->userDBfields['login']->name], $_POST[$this->userDBfields['password']->name]);
 
 		return $this;
 	}
