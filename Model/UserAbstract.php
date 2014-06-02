@@ -63,7 +63,7 @@ use Xorc;
 	 * Опциональные свойства пользователя
 	 * @var array
 	 */
-	protected $properties;
+	public $properties;
 	
 	/**
 	 * Массив сообщений об ошибках
