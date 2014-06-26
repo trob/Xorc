@@ -41,7 +41,20 @@ class FrontControllerAbstract {
 	 * Метод для загрузки настроек из файла конфигурации
 	 */
 	protected function loadConfig() {
-		$this->config = parse_ini_file(ROOT_PATH.'/app/config/config.ini', true);
+		
+		$configPath = ROOT_PATH.'/app/config/config.';
+		
+		if (file_exists($configPath.'php')) {
+			require_once $configPath.'php';
+			$this->config = $Config;
+			unset($Config);
+		}
+		elseif (file_exists($configPath.'ini')) {
+			$this->config = parse_ini_file($configPath.'ini', true);
+		}
+		else {
+			throw new \Exception('No config file.');
+		}
 		return $this;
 	}
 

@@ -15,7 +15,7 @@ use Xorc;
  * @copyright Copyright (c) 2013 Roman Kazakov http://rc21net.ru
  * @license GNU General Public License v2 or later http://www.gnu.org/licenses/gpl-2.0.html
  */
- abstract class UserAbstract extends MySqli {
+abstract class UserAbstract extends MySqli {
 
  	/**
  	 * Название таблицы пользователей в БД
@@ -125,21 +125,28 @@ use Xorc;
 	 * $this->userDBtable - имя таблицы с пользователями
 	 */
 	abstract protected function initExtendProperties();
-
+	
 	/**
 	 * Получить пользователя по ID
 	 * @param string $id
+	 * @throws Exception
 	 * @return \Xorc\Model\UserAbstract
 	 */
-	public function get($id) {
+	public static function get($id) {
 		
-		if ($this->userDBprocedures['get'] != null) {
-			if (!$this->properties = $this->callProcedure($this->userDBprocedures['get'], $id)) throw new Exception($this->exceptionMessages[9]);
+		// создаем экземпляр конечного (дочернего) класса
+		$instant = new static();
+		
+		// загружаем в него данные из БД
+		if ($instant->userDBprocedures['get'] != null) {
+			if (!$instant->properties = $instant->callProcedure($instant->userDBprocedures['get'], $id)) throw new Exception($instant->exceptionMessages[9]);
 		}
 		else {
-			if (!$this->properties = $this->getObjectByParam($this->userDBtable, $this->userDBfields['id']->name, $id , 'assoc')) throw new Exception($this->exceptionMessages[9]);
+			if (!$instant->properties = $instant->getObjectByParam($instant->userDBtable, $instant->userDBfields['id']->name, $id , 'assoc')) throw new Exception($instant->exceptionMessages[9]);
 		}
-		return $this;
+		
+		// возвращаем полученные экземпляр
+		return $instant;
 	}
 
 	/**
@@ -190,9 +197,7 @@ use Xorc;
 	 * @throws \Exception
 	 * @return \Xorc\Model\UserAbstract
 	 */
-	public function activate($id, $solt) {
-		
-		$this->get($this->escape($id, 'integer'));
+	public function activate($solt) {
 		
 		$registerSolt = md5($this->properties['email'].$this->properties['registrationDate']);
 		
@@ -210,7 +215,17 @@ use Xorc;
 	 * @param array $prop массив с логином и паролем
 	 * @return \Xorc\Model\UserAbstract
 	 */
-	public function register($prop, $message) {
+	
+	/**
+	 * Регистрация пользователя (добавление в базу и отправка email)
+	 * @param array $prop Массив с логином и паролем
+	 * @param string $message Сообщение для отправки пользователю. Должно содержать паттерны {id} и {solt}
+	 * @throws \Exception
+	 * @return \Xorc\Model\UserAbstract
+	 */
+	public function register($prop, $message = null) {
+		
+		$message = $message ? $message : '<a href="/user/activate/{id}/{solt}">Register</a>';
 		
 		// дата регистрации
 		$this->properties['registrationDate'] = time();
